@@ -1,0 +1,171 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
+    static Array twoToThe;
+
+    /** Initializes the library. */
+    function void init() {
+        var int i, product;
+        let twoToThe = Array.new(16);
+        let product = 1;
+        let i = 0;
+        while (i < 16) {
+            let twoToThe[i] = product;
+
+            let product = product + product;
+
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        } else {
+            return x;
+        }
+    }
+
+    /** Returns the product of x and y. 
+     *  When a Jack compiler detects the multiplication operator '*' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int n, i, shiftedX, sum;
+
+        let sum = 0;
+        let n = 16;
+        let i = 0;
+
+        let shiftedX = x;
+
+        while (i < 16) {
+            if (Math.bit(y, i)) { // Test if the ith bit of y is equal to 1.
+                let sum = sum + shiftedX;
+            }
+
+            let shiftedX = shiftedX + shiftedX;
+
+            let i = i + 1;
+        }
+
+        return sum;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        var int q, result;
+        var boolean pos;
+
+        let pos = ((x < 0) = (y < 0)); // True if x and y are both positive or both negative, else false.
+
+        let x = Math.abs(x); // Convert x to a positive value.
+        let y = Math.abs(y); // Convert y to a positive value.
+        
+        if (y > x) {
+            return 0; // If y is greater then x return 0. 
+        }
+
+        let q = Math.divide(x, 2 * y);
+
+        if ((x - (2 * q * y)) < y) {
+            let result = 2 * q;
+        } else {
+            let result = 2 * q + 1;
+        }
+
+        if (pos) { // If x and y are both positive or both negative return a positive value.
+            return result;
+        } else {
+            return -result; // Else return a negative value.
+        }
+
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int n, j, y, approx, approxSquared;
+
+        let n = 16;
+        let j = (n/2) - 1;
+        let y = 0;
+        
+        while(~(j < 0)) {
+            let approx = y + twoToThe[j];
+            let approxSquared = approx * approx;
+            if (~(approxSquared > x) & (approxSquared > 0)) {
+                let y = approx;
+            }
+
+            let j = j - 1;
+        }
+
+        return y;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    function boolean bit(int x, int i) {
+        var int value;
+
+        if ((x & twoToThe[i]) = twoToThe[i]) {
+            return 1;
+        } else {
+            return 0;
+        }
+
+        // return ~((x & twoToThe[i]) = 0);
+    }
+
+    function int mod(int a, int b) {
+        return a - ((a / b) * b);
+    }
+
+    function int pow(int base, int power) {
+        var int i, sum, product;
+
+        let sum = 0;
+        let product = 1;
+        let i = 0;
+
+        while(~(i = power)) {
+            let sum = power;
+            let product = product * base;
+
+            let i = i + 1;
+        }
+
+        return sum;
+    }
+}

@@ -1,0 +1,155 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+    static Array memory;
+    static Array freeList;
+    static Array noBlock;
+
+    static int flLength; // freeList.length index
+    static int flNext; // freeList.next index
+
+    static int allocSize; // Allocate block size index relative to start of allocated block.
+
+    /** Initializes the class. */
+    function void init() {
+        let memory = 0;
+        let freeList = 2048;
+        let noBlock = 16384; // No block found.
+        let flLength = 0;
+        let flNext = 1;
+        let allocSize = -1;
+
+        let freeList[flLength] = 16384 - 2048;
+        let freeList[flNext] = null;
+
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return memory[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let memory[address] = value;
+
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var Array foundBlock, nextBlock, result;
+
+        let foundBlock = Memory.bestFit(size); // Get the block that best fit the required size.
+        let result = foundBlock + 1;
+
+        if (~(foundBlock = null)) {
+            // Allocate this block, check if only need to allocate part of the block or the whole block.
+            if (foundBlock[flLength] > (size + 3)) {
+                let nextBlock = foundBlock + size + 1;
+                let nextBlock[flNext] = foundBlock[flNext];
+                let nextBlock[flLength] = foundBlock[flLength] - size - 1;
+                let result[allocSize] = size + 1;
+                let freeList = nextBlock;
+            } else {
+                // Allocate the whole block.
+                let nextBlock = foundBlock[flNext];
+                let result[allocSize] = foundBlock[flLength];
+            }
+
+            let foundBlock = nextBlock;
+        }
+
+        return result;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var Array preBlock, nextBlock;
+        var int size;
+
+        let size = o[allocSize];
+        let o = o - 1; // Must consider block[-1].
+        let preBlock = Memory.findPreFree(o);
+
+        if (preBlock = null) {
+            let o[flLength] = size;
+            let o[flNext] = freeList;
+            let freeList = o;
+        } else {
+            if ((preBlock + preBlock[flLength]) = o) {
+                let preBlock[flLength] = preBlock[flLength] + size;
+                let o = preBlock;
+            } else {
+                let o[flLength] = size;
+                let o[flNext] = preBlock[flNext];
+                let preBlock[flNext] = o;
+            }
+        }
+
+        // After linking, check if this block can be joined to the next block.
+        if ((o + o[flLength]) = o[flNext]) {
+            let nextBlock = o[flNext];
+            let o[flLength] = o[flLength] + nextBlock[flLength];
+            let o[flNext] = nextBlock[flNext];
+        }
+
+        return;
+    }
+
+    function Array bestFit(int size) {
+        var Array curBlock, bestBlock;
+        var int bestSize, curSize;
+
+        let bestBlock = null;
+        let bestSize = 16384 - 2048;
+        let curBlock = freeList;
+        // let prevBlock = null;
+
+        if (curBlock[flNext] = null) {
+            return curBlock;
+        }
+
+        while(~(curBlock = null)) {
+            let curSize = curBlock[flLength]-1; // Number of usable words.
+            if (~(curSize < size) & (curSize < bestSize)) {
+                // Found new best block.
+                let bestBlock = curBlock; // Remember block before best block.
+                let bestSize = curSize;
+            }
+
+            // let prevBlock = curBlock;
+            let curBlock = curBlock[flNext];
+        }
+
+        return bestBlock; // Block just before best fit.
+    }
+
+    function Array findPreFree(int object) {
+        var Array preBlock;
+
+        // No freeBlock.
+        if (freeList > object) {
+            return null;
+        }
+
+        let preBlock = freeList;
+
+        while(~(preBlock[flNext] = null) & (preBlock[flNext] < object)) {
+            let preBlock = preBlock[flNext];
+        }
+
+        return preBlock;
+    }
+}

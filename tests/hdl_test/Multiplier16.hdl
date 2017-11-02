@@ -1,0 +1,69 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/Adder16.hdl
+
+/**
+ * Adds two 16-bit values.
+ * The most significant carry bit is ignored.
+ */
+
+CHIP Multiplier16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+   // Do the left shift by one bit for all the 16 bits sequencely.
+   Add16(a[0..15]=a[0..15], b[0..15]=false, out=sumA0); // a left shift by 1 (a).
+   Add16(a[0..15]=sumA0, b[0..15]=sumA0, out=sumA1); // a left shift by 1 (a * 2).
+   Add16(a[0..15]=sumA1, b[0..15]=sumA1, out=sumA2); // a left shift by 1 (a * 4).
+   Add16(a[0..15]=sumA2, b[0..15]=sumA2, out=sumA3); // a left shift by 1 (a * 8).
+   Add16(a[0..15]=sumA3, b[0..15]=sumA3, out=sumA4); // a left shift by 1 (a * 16).
+   Add16(a[0..15]=sumA4, b[0..15]=sumA4, out=sumA5); // a left shift by 1 (a * 32).
+   Add16(a[0..15]=sumA5, b[0..15]=sumA5, out=sumA6); // a left shift by 1 (a * 64).
+   Add16(a[0..15]=sumA6, b[0..15]=sumA6, out=sumA7); // a left shift by 1 (a * 128).
+   Add16(a[0..15]=sumA7, b[0..15]=sumA7, out=sumA8); // a left shift by 1 (a * 256).
+   Add16(a[0..15]=sumA8, b[0..15]=sumA8, out=sumA9); // a left shift by 1 (a * 512).
+   Add16(a[0..15]=sumA9, b[0..15]=sumA9, out=sumA10); // a left shift by 1 (a * 1024).
+   Add16(a[0..15]=sumA10, b[0..15]=sumA10, out=sumA11); // a left shift by 1 (a * 2048).
+   Add16(a[0..15]=sumA11, b[0..15]=sumA11, out=sumA12); // a left shift by 1 (a * 4096).
+   Add16(a[0..15]=sumA12, b[0..15]=sumA12, out=sumA13); // a left shift by 1 (a * 8192).
+   Add16(a[0..15]=sumA13, b[0..15]=sumA13, out=sumA14); // a left shift by 1 (a * 16384).
+   Add16(a[0..15]=sumA14, b[0..15]=sumA14, out=sumA15); // a left shift by 1 (a * 32768).
+
+   // Select between the left shifted value or zero depending on the bits of b.
+   Mux16(a[0..15]=false, b[0..15]=sumA0, sel=b[0], out[0..15]=outM0);
+   Mux16(a[0..15]=false, b[0..15]=sumA1, sel=b[1], out[0..15]=outM1);
+   Mux16(a[0..15]=false, b[0..15]=sumA2, sel=b[2], out[0..15]=outM2);
+   Mux16(a[0..15]=false, b[0..15]=sumA3, sel=b[3], out[0..15]=outM3);
+   Mux16(a[0..15]=false, b[0..15]=sumA4, sel=b[4], out[0..15]=outM4);
+   Mux16(a[0..15]=false, b[0..15]=sumA5, sel=b[5], out[0..15]=outM5);
+   Mux16(a[0..15]=false, b[0..15]=sumA6, sel=b[6], out[0..15]=outM6);
+   Mux16(a[0..15]=false, b[0..15]=sumA7, sel=b[7], out[0..15]=outM7);
+   Mux16(a[0..15]=false, b[0..15]=sumA8, sel=b[8], out[0..15]=outM8);
+   Mux16(a[0..15]=false, b[0..15]=sumA9, sel=b[9], out[0..15]=outM9);
+   Mux16(a[0..15]=false, b[0..15]=sumA10, sel=b[10], out[0..15]=outM10);
+   Mux16(a[0..15]=false, b[0..15]=sumA11, sel=b[11], out[0..15]=outM11);
+   Mux16(a[0..15]=false, b[0..15]=sumA12, sel=b[12], out[0..15]=outM12);
+   Mux16(a[0..15]=false, b[0..15]=sumA13, sel=b[13], out[0..15]=outM13);
+   Mux16(a[0..15]=false, b[0..15]=sumA14, sel=b[14], out[0..15]=outM14);
+   Mux16(a[0..15]=false, b[0..15]=sumA15, sel=b[15], out[0..15]=outM15);
+
+   // Sum the outputs of the multiplexers.
+   Add16(a[0..15]=outM0, b[0..15]=outM1, out=sum0); // Add up output of multiplexer1 and multiplexer2.
+   Add16(a[0..15]=outM2, b[0..15]=sum0, out=sum1); // Add up output of multiplexer3 and sum0.
+   Add16(a[0..15]=outM3, b[0..15]=sum1, out=sum2); // Add up output of multiplexer4 and sum1.
+   Add16(a[0..15]=outM4, b[0..15]=sum2, out=sum3); // Add up output of multiplexer5 and sum2.
+   Add16(a[0..15]=outM5, b[0..15]=sum3, out=sum4); // Add up output of multiplexer6 and sum3.
+   Add16(a[0..15]=outM6, b[0..15]=sum4, out=sum5); // Add up output of multiplexer7 and sum4.
+   Add16(a[0..15]=outM7, b[0..15]=sum5, out=sum6); // Add up output of multiplexer8 and sum5.
+   Add16(a[0..15]=outM8, b[0..15]=sum6, out=sum7); // Add up output of multiplexer9 and sum6.
+   Add16(a[0..15]=outM9, b[0..15]=sum7, out=sum8); // Add up output of multiplexer10 and sum7.
+   Add16(a[0..15]=outM10, b[0..15]=sum8, out=sum9); // Add up output of multiplexer11 and sum8.
+   Add16(a[0..15]=outM11, b[0..15]=sum9, out=sum10); // Add up output of multiplexer12 and sum9.
+   Add16(a[0..15]=outM12, b[0..15]=sum10, out=sum11); // Add up output of multiplexer13 and sum10.
+   Add16(a[0..15]=outM13, b[0..15]=sum11, out=sum12); // Add up output of multiplexer14 and sum11.
+   Add16(a[0..15]=outM14, b[0..15]=sum12, out=sum13); // Add up output of multiplexer15 and sum12.
+   Add16(a[0..15]=outM15, b[0..15]=sum13, out=out); // Add up output of multiplexer16 and sum13.
+   
+}
